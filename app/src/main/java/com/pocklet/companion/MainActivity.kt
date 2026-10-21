@@ -141,6 +141,7 @@ fun MainScreen() {
     var models by remember { mutableStateOf<List<String>>(emptyList()) }
     var apps by remember { mutableStateOf<List<AppItem>>(emptyList()) }
     var message by remember { mutableStateOf("") }
+    var modelInput by remember(model) { mutableStateOf(model.ifBlank { Prefs.DEFAULT_MODEL }) }
 
     val selectedFlow = remember { Prefs.selectedApps(ctx) }
     val modelFlow = remember { Prefs.model(ctx) }
@@ -310,6 +311,24 @@ fun MainScreen() {
                     }) { Text("Muat model") }
                 }
                 Text("Model aktif: ${model.ifBlank { "belum dipilih" }}")
+                OutlinedTextField(
+                    value = modelInput,
+                    onValueChange = { modelInput = it },
+                    label = { Text("Nama model (contoh: gemma4:31b)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Button(onClick = {
+                    val name = modelInput.trim()
+                    if (name.isBlank()) {
+                        message = "Nama model kosong"
+                    } else {
+                        scope.launch {
+                            Prefs.setModel(ctx, name)
+                            message = "Model disimpan: $name"
+                        }
+                    }
+                }) { Text("Simpan model") }
                 models.forEach { m ->
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable {

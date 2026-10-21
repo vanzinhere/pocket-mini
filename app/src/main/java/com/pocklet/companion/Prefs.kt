@@ -21,6 +21,7 @@ object Prefs {
     private val SELECTED = stringSetPreferencesKey("selected_apps")
     private val MODEL = stringPreferencesKey("model")
     private val AUTOSTART = booleanPreferencesKey("autostart")
+    const val DEFAULT_MODEL = "gemma4:31b"
     private const val CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"
 
     @Volatile private var secure: SharedPreferences? = null
@@ -69,10 +70,10 @@ object Prefs {
     }
 
     fun model(ctx: Context): Flow<String> =
-        ctx.dataStore.data.map { it[MODEL].orEmpty() }
+        ctx.dataStore.data.map { it[MODEL] ?: DEFAULT_MODEL }
 
     suspend fun modelNow(ctx: Context): String =
-        ctx.dataStore.data.first()[MODEL].orEmpty()
+        ctx.dataStore.data.first()[MODEL] ?: DEFAULT_MODEL
 
     suspend fun setModel(ctx: Context, model: String) {
         ctx.dataStore.edit { it[MODEL] = model }

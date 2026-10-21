@@ -61,6 +61,7 @@ object Ollama {
             readTimeout = 60_000
             setRequestProperty("Authorization", "Bearer $apiKey")
             setRequestProperty("Accept", "application/json")
+            setRequestProperty("User-Agent", "PockletCompanion/1.0 (Android)")
             if (body != null) {
                 requestMethod = "POST"
                 doOutput = true
@@ -72,7 +73,11 @@ object Ollama {
                 conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
             }
             val code = conn.responseCode
-            if (code !in 200..299) throw OllamaException("Ollama HTTP $code")
+            if (code !in 200..299) {
+                val detail = conn.errorStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+                    .orEmpty().take(80).replace('\n', ' ')
+                throw OllamaException("Ollama HTTP $code${if (detail.isNotBlank()) ": $detail" else ""}")
+            }
             val text = conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
             return JSONObject(text)
         } finally {
